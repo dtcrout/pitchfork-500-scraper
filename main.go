@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"github.com/PuerkitoBio/goquery"
 	"log"
 	"net/http"
+	"strings"
 )
 
-func get(url string) string {
-	// Simple wrapper for http get() method
+func ParseWiki(url string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -17,17 +17,25 @@ func get(url string) string {
 
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 
-	html := string(body)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return html
+	// Find all songs on page and parse string into artist and song
+	doc.Find(".div-col").Each(func(_ int, s *goquery.Selection) {
+		s.Find("li").Each(func(_ int, t *goquery.Selection) {
+			text := t.Text()
+			s := strings.Split(text, " –")
+			artist := s[0]
+			song := s[1]
+			fmt.Println(artist, song)
+		})
+	})
 }
 
 func main() {
 	url := "https://en.wikipedia.org/wiki/The_Pitchfork_500"
-
-	html := get(url)
-
-	fmt.Println(html)
+	ParseWiki(url)
 }
