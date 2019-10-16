@@ -2,16 +2,35 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
 type Track struct {
 	Artist string
 	Song   string
+}
+
+func WriteToFile(filename string, data string) error {
+	file, err := os.Create(filename)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	_, err = io.WriteString(file, data)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return file.Sync()
 }
 
 func ParseWiki(url string) []string {
@@ -55,5 +74,12 @@ func main() {
 	url := "https://en.wikipedia.org/wiki/The_Pitchfork_500"
 	tracks := ParseWiki(url)
 
-	fmt.Println(tracks)
+	var err error
+	for _, track := range tracks {
+		err = WriteToFile("out.txt", track)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
