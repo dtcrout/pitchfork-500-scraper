@@ -41,7 +41,7 @@ func ParseWiki(url string) []string {
 			// Create track
 			track = artist + "," + song + "\n"
 
-			tracks = append(tracks, string(track))
+			tracks = append(tracks, track)
 		})
 	})
 
