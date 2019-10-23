@@ -9,24 +9,6 @@ import (
 	"strings"
 )
 
-func WriteToFile(filename string, data string) error {
-	file, err := os.Create(filename)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer file.Close()
-
-	_, err = io.WriteString(file, data)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return file.Sync()
-}
-
 func ParseWiki(url string) []string {
 	resp, err := http.Get(url)
 
@@ -46,7 +28,7 @@ func ParseWiki(url string) []string {
 	var tracks []string
 	var track string
 
-	tracks = append(tracks, "artist,song")
+	tracks = append(tracks, "artist,song,\n")
 
 	// Find all songs on page and parse string into artist and song
 	doc.Find(".div-col").Each(func(_ int, s *goquery.Selection) {
@@ -57,7 +39,7 @@ func ParseWiki(url string) []string {
 			song := strings.Trim(text[1], " \"")
 
 			// Create track
-			track = artist + "," + song
+			track = artist + "," + song + "\n"
 
 			tracks = append(tracks, string(track))
 		})
@@ -72,12 +54,18 @@ func main() {
 
 	tracks := ParseWiki(url)
 
+	file, _ := os.Create(out_filename)
+
+	defer file.Close()
+
 	var err error
 	for _, track := range tracks {
-		err = WriteToFile(out_filename, track)
+		_, err = io.WriteString(file, track)
 
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		file.Sync()
 	}
 }
