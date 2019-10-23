@@ -28,7 +28,7 @@ func ParseWiki(url string) []string {
 	var tracks []string
 	var track string
 
-	tracks = append(tracks, "artist,song,\n")
+	tracks = append(tracks, "artist,song\n")
 
 	// Find all songs on page and parse string into artist and song
 	doc.Find(".div-col").Each(func(_ int, s *goquery.Selection) {
