@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"log"
@@ -9,11 +8,6 @@ import (
 	"os"
 	"strings"
 )
-
-type Track struct {
-	Artist string
-	Song   string
-}
 
 func WriteToFile(filename string, data string) error {
 	file, err := os.Create(filename)
@@ -50,6 +44,9 @@ func ParseWiki(url string) []string {
 
 	// Create array for tracks
 	var tracks []string
+	var track string
+
+	tracks = append(tracks, "artist,song")
 
 	// Find all songs on page and parse string into artist and song
 	doc.Find(".div-col").Each(func(_ int, s *goquery.Selection) {
@@ -60,8 +57,7 @@ func ParseWiki(url string) []string {
 			song := strings.Trim(text[1], " \"")
 
 			// Create track
-			track_obj := Track{Artist: artist, Song: song}
-			track, _ := json.Marshal(track_obj)
+			track = artist + "," + song
 
 			tracks = append(tracks, string(track))
 		})
@@ -72,11 +68,13 @@ func ParseWiki(url string) []string {
 
 func main() {
 	url := "https://en.wikipedia.org/wiki/The_Pitchfork_500"
+	out_filename := "tracks.csv"
+
 	tracks := ParseWiki(url)
 
 	var err error
 	for _, track := range tracks {
-		err = WriteToFile("out.txt", track)
+		err = WriteToFile(out_filename, track)
 
 		if err != nil {
 			log.Fatal(err)
