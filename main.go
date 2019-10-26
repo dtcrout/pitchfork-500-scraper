@@ -1,15 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 )
 
-func ParseWiki(url string) []string {
+type Track struct {
+	Artist string
+	Song   string
+}
+
+func (t Track) String() string {
+	return fmt.Sprintf("{\"artist\": \"%s\", \"song\": \"%s\"}", t.Artist, t.Song)
+}
+
+func ParseWiki(url string) {
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -24,12 +32,6 @@ func ParseWiki(url string) []string {
 		log.Fatal(err)
 	}
 
-	// Create array for tracks
-	var tracks []string
-	var track string
-
-	tracks = append(tracks, "artist,song\n")
-
 	// Find all songs on page and parse string into artist and song
 	doc.Find(".div-col").Each(func(_ int, s *goquery.Selection) {
 		s.Find("li").Each(func(_ int, t *goquery.Selection) {
@@ -39,33 +41,14 @@ func ParseWiki(url string) []string {
 			song := strings.Trim(text[1], " \"")
 
 			// Create track
-			track = artist + "," + song + "\n"
-
-			tracks = append(tracks, track)
+			track := Track{Artist: artist, Song: song}
+			fmt.Println(track)
 		})
 	})
-
-	return tracks
 }
 
 func main() {
 	url := "https://en.wikipedia.org/wiki/The_Pitchfork_500"
-	out_filename := "tracks.csv"
 
-	tracks := ParseWiki(url)
-
-	file, _ := os.Create(out_filename)
-
-	defer file.Close()
-
-	var err error
-	for _, track := range tracks {
-		_, err = io.WriteString(file, track)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		file.Sync()
-	}
+	ParseWiki(url)
 }
